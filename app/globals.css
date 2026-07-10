@@ -81,7 +81,7 @@ button.ghost:disabled { opacity: .4; cursor: default; }
 }
 .badge { width: 54px; height: 54px; border-radius: 12px; display: grid; place-items: center; font-weight: 800; font-size: 18px; color: #0a0e17; }
 .badge small { display: block; font-size: 8.5px; font-weight: 700; letter-spacing: .06em; }
-.HOT { background: var(--hot); } .WARM { background: var(--warm); } .COOL { background: var(--cool); }
+.badge.HOT { background: var(--hot); } .badge.WARM { background: var(--warm); } .badge.COOL { background: var(--cool); }
 .lead h3 { font-size: 16px; margin-bottom: 3px; }
 .cat { color: var(--muted); font-size: 12px; text-transform: capitalize; }
 .meta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; font-size: 13px; color: var(--muted); }
@@ -143,9 +143,9 @@ button.ghost:disabled { opacity: .4; cursor: default; }
 .chips.tight { margin-top: 0; }
 .chip.toggle { user-select: none; transition: all .12s ease; }
 .chip.toggle.on { background: rgba(79,140,255,.14); border-color: var(--accent); color: var(--text); }
-.chip.toggle.on.HOT { background: rgba(255,84,112,.15); border-color: var(--hot); }
-.chip.toggle.on.WARM { background: rgba(255,178,62,.15); border-color: var(--warm); }
-.chip.toggle.on.COOL { background: rgba(70,193,160,.15); border-color: var(--cool); }
+.chip.toggle.tdot.on.HOT { background: rgba(255,84,112,.15); border-color: var(--hot); }
+.chip.toggle.tdot.on.WARM { background: rgba(255,178,62,.15); border-color: var(--warm); }
+.chip.toggle.tdot.on.COOL { background: rgba(70,193,160,.15); border-color: var(--cool); }
 .chip .pts { color: var(--accent); font-weight: 700; font-size: 11px; }
 .range { padding: 0; height: 6px; -webkit-appearance: none; appearance: none; background: var(--panel2); border-radius: 999px; border: 1px solid var(--border); }
 .range::-webkit-slider-thumb {
@@ -172,8 +172,6 @@ button.linkish { background: none; border: 0; color: var(--accent); cursor: poin
   list-style: none; display: inline-block; user-select: none;
 }
 .brk summary::-webkit-details-marker { display: none; }
-.brk summary::before { content: "▸ "; font-size: 10px; }
-.brk[open] summary::before { content: "▾ "; }
 .brkbody {
   margin-top: 10px; background: var(--panel2); border: 1px solid var(--border);
   border-radius: 10px; padding: 12px 14px;
@@ -196,3 +194,49 @@ button.linkish { background: none; border: 0; color: var(--accent); cursor: poin
 .brknote { font-size: 12px; color: var(--muted); line-height: 1.55; margin-top: 8px; }
 .brknote b { color: var(--text); }
 .brknote em { color: #c4cee2; font-style: normal; }
+
+/* ---------- Icons ---------- */
+/* Icons sit on the text baseline and inherit colour from their container. */
+.icon { flex: none; vertical-align: -0.14em; }
+.i-hot { color: var(--hot); } .i-warm { color: var(--warm); } .i-cool { color: var(--cool); }
+
+.logo svg { color: #fff; }
+
+/* Status dots: colour is driven by the tier/freshness class on the parent. */
+.dot { color: var(--muted); vertical-align: 0.02em; }
+.tdot.HOT .dot, .band.HOT .dot { color: var(--hot); }
+.tdot.WARM .dot, .band.WARM .dot { color: var(--warm); }
+.tdot.COOL .dot, .band.COOL .dot { color: var(--cool); }
+.fdot.FRESH .dot,  .fresh.FRESH .dot  { color: var(--cool); }
+.fdot.RECENT .dot, .fresh.RECENT .dot { color: var(--warm); }
+.fdot.AGING .dot,  .fresh.AGING .dot  { color: #ff9a52; }
+.fdot.STALE .dot,  .fresh.STALE .dot  { color: var(--hot); }
+.fdot.UNKNOWN .dot, .fresh.UNKNOWN .dot { color: var(--muted); }
+
+.chip.toggle { display: inline-flex; align-items: center; gap: 6px; }
+.stat span { display: inline-flex; align-items: center; gap: 5px; }
+.scanline { display: flex; align-items: center; gap: 7px; }
+.meta span { display: inline-flex; align-items: center; gap: 6px; }
+.meta .off { opacity: .75; }
+.pitch { display: flex; align-items: flex-start; gap: 7px; }
+.pitch .icon { margin-top: 2px; color: var(--warm); }
+.bandhead b { display: inline-flex; align-items: center; gap: 7px; }
+.band p.act { display: flex; align-items: flex-start; gap: 6px; }
+.band p.act .icon { margin-top: 2px; flex: none; }
+button.ghost, button.go { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.status { align-items: flex-start; }
+.status .icon { margin-top: 2px; }
+
+/* Search field with a leading icon. */
+.inputwrap { position: relative; display: flex; align-items: center; }
+.inputwrap .icon { position: absolute; left: 13px; color: var(--muted); pointer-events: none; }
+.inputwrap input { padding-left: 38px; }
+
+/* Chevrons rotate to signal open/closed state. */
+.caret { color: var(--muted); transition: transform .15s ease; }
+.caret.up { transform: rotate(180deg); }
+.sh-title { display: inline-flex; align-items: center; gap: 9px; }
+.brk summary { display: flex; align-items: center; gap: 5px; list-style: none; }
+.brk summary::marker { content: ""; }
+.brk .chev { transition: transform .15s ease; }
+.brk[open] .chev { transform: rotate(90deg); }

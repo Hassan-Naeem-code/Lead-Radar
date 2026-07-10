@@ -9,6 +9,11 @@ import {
   ageInDays,
   type FreshnessLevel,
 } from "@/lib/freshness";
+import {
+  RadarMark, Phone, Mail, Globe, GlobeOff, MapPin, Lightbulb, Download, Info,
+  AlertTriangle, Clock, Flame, Gauge, Building, Search, ChevronDown,
+  ChevronRight, ArrowRight, RotateCcw, Dot,
+} from "./icons";
 
 const EXAMPLES = [
   "restaurants", "dentists", "law firms", "auto repair", "salons",
@@ -19,10 +24,6 @@ type SortKey = "score" | "freshest" | "name";
 
 const ALL_TIERS: Lead["tier"][] = ["HOT", "WARM", "COOL"];
 const ALL_FRESHNESS: FreshnessLevel[] = ["FRESH", "RECENT", "AGING", "STALE", "UNKNOWN"];
-
-const FRESH_EMOJI: Record<FreshnessLevel, string> = {
-  FRESH: "🟢", RECENT: "🟡", AGING: "🟠", STALE: "🔴", UNKNOWN: "⚪",
-};
 
 export default function Home() {
   const [niche, setNiche] = useState("restaurants");
@@ -43,7 +44,8 @@ export default function Home() {
 
   function toggle(set: Set<string>, apply: (s: Set<string>) => void, key: string) {
     const next = new Set(set);
-    next.has(key) ? next.delete(key) : next.add(key);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
     apply(next);
   }
 
@@ -140,10 +142,10 @@ export default function Home() {
   return (
     <div className="wrap">
       <div className="brand">
-        <div className="logo">LR</div>
+        <div className="logo"><RadarMark size={22} /></div>
         <h1>LeadRadar</h1>
       </div>
-      <p className="tag">Type any niche + location → real, qualified leads that actually need your work.</p>
+      <p className="tag">Type any niche and location to surface real, qualified leads that need your work.</p>
 
       <form className="card form" onSubmit={run}>
         <div>
@@ -175,34 +177,52 @@ export default function Home() {
       <GradeScale open={showScale} onToggle={() => setShowScale((v) => !v)} />
 
       {loading && (
-        <div className="status"><span className="spinner" /> Geocoding, pulling real businesses & auditing their web presence…</div>
+        <div className="status"><span className="spinner" /> Geocoding, pulling real businesses and auditing their web presence…</div>
       )}
-      {error && <div className="status error">⚠ {error}</div>}
+      {error && <div className="status error"><AlertTriangle size={15} /> {error}</div>}
 
       {result && (
         <>
           <div className="summary">
-            <div className="stat"><b>{visible.length}</b><span>{filtersOn ? `of ${result.count} shown` : "leads found"}</span></div>
-            <div className="stat"><b style={{ color: "var(--hot)" }}>{hot}</b><span>🔥 hot</span></div>
-            <div className="stat"><b style={{ color: "var(--warm)" }}>{warm}</b><span>warm</span></div>
-            <div className="stat"><b style={{ color: "var(--cool)" }}>{freshCount}</b><span>fresh listings</span></div>
-            <div className="stat"><b style={{ fontSize: 14, fontWeight: 600 }}>{result.matchedTags.join(", ")}</b><span>matched category</span></div>
+            <div className="stat">
+              <b>{visible.length}</b>
+              <span><Building size={12} /> {filtersOn ? `of ${result.count} shown` : "leads found"}</span>
+            </div>
+            <div className="stat">
+              <b style={{ color: "var(--hot)" }}>{hot}</b>
+              <span><Flame size={12} className="i-hot" /> hot</span>
+            </div>
+            <div className="stat">
+              <b style={{ color: "var(--warm)" }}>{warm}</b>
+              <span><Flame size={12} className="i-warm" /> warm</span>
+            </div>
+            <div className="stat">
+              <b style={{ color: "var(--cool)" }}>{freshCount}</b>
+              <span><Clock size={12} className="i-cool" /> fresh listings</span>
+            </div>
+            <div className="stat">
+              <b style={{ fontSize: 14, fontWeight: 600 }}>{result.matchedTags.join(", ")}</b>
+              <span>matched category</span>
+            </div>
             <button className="ghost" onClick={exportCsv} style={{ marginLeft: "auto" }} disabled={!visible.length}>
-              ⬇ Export CSV{filtersOn ? ` (${visible.length})` : ""}
+              <Download size={15} /> Export CSV{filtersOn ? ` (${visible.length})` : ""}
             </button>
           </div>
 
           <div className="scanline">
-            🕒 Scanned <b>{scanAge}</b> · every website re-audited live at search time
+            <Clock size={13} /> Scanned <b>{scanAge}</b> · every website re-audited live at search time
           </div>
 
-          {result.notes.map((n, i) => <div key={i} className="status">ℹ {n}</div>)}
+          {result.notes.map((n, i) => <div key={i} className="status"><Info size={15} /> {n}</div>)}
 
           <div className="card filters">
             <div className="frow">
               <div className="fgroup grow">
                 <label>Search results</label>
-                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by name, category or city…" />
+                <div className="inputwrap">
+                  <Search size={15} />
+                  <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by name, category or city…" />
+                </div>
               </div>
               <div className="fgroup">
                 <label>Sort by</label>
@@ -224,9 +244,9 @@ export default function Home() {
                 <label>Tier</label>
                 <div className="chips tight">
                   {ALL_TIERS.map((t) => (
-                    <span key={t} className={`chip toggle ${tiers.has(t) ? "on " + t : ""}`}
+                    <span key={t} className={`chip toggle tdot ${t} ${tiers.has(t) ? "on" : ""}`}
                       onClick={() => toggle(tiers, setTiers, t)}>
-                      {bandFor(t).label}
+                      <Dot /> {bandFor(t).label}
                     </span>
                   ))}
                 </div>
@@ -235,10 +255,10 @@ export default function Home() {
                 <label>Freshness</label>
                 <div className="chips tight">
                   {ALL_FRESHNESS.map((f) => (
-                    <span key={f} className={`chip toggle ${freshLevels.has(f) ? "on" : ""}`}
+                    <span key={f} className={`chip toggle fdot ${f} ${freshLevels.has(f) ? "on" : ""}`}
                       onClick={() => toggle(freshLevels, setFreshLevels, f)}
                       title={freshnessBandFor(f).meaning}>
-                      {FRESH_EMOJI[f]} {freshnessBandFor(f).label}
+                      <Dot /> {freshnessBandFor(f).label}
                     </span>
                   ))}
                 </div>
@@ -258,7 +278,11 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-              {filtersOn && <button className="ghost sm" onClick={resetFilters}>Reset filters</button>}
+              {filtersOn && (
+                <button className="ghost sm" onClick={resetFilters}>
+                  <RotateCcw size={14} /> Reset filters
+                </button>
+              )}
             </div>
           </div>
 
@@ -292,24 +316,29 @@ function LeadCard({ lead: l }: { lead: Lead }) {
         <div className="cat">
           {l.category.replace(/_/g, " ")}{l.city ? ` · ${l.city}` : ""}
           <span className={`fresh ${l.freshness}`} title={fband.meaning}>
-            {FRESH_EMOJI[l.freshness]} {fband.label} · listing updated {l.freshnessLabel}
+            <Dot /> {fband.label} · listing updated {l.freshnessLabel}
           </span>
         </div>
         <div className="meta">
-          {l.phone && <span>📞 <a href={`tel:${l.phone}`}>{l.phone}</a></span>}
-          {l.email && <span>✉ <a href={`mailto:${l.email}`}>{l.email}</a></span>}
-          {l.website ? <span>🌐 <a href={l.website} target="_blank" rel="noreferrer">website</a></span> : <span>🌐 no website</span>}
-          <span>📍 <a href={l.mapUrl} target="_blank" rel="noreferrer">map</a></span>
+          {l.phone && <span><Phone size={14} /> <a href={`tel:${l.phone}`}>{l.phone}</a></span>}
+          {l.email && <span><Mail size={14} /> <a href={`mailto:${l.email}`}>{l.email}</a></span>}
+          {l.website
+            ? <span><Globe size={14} /> <a href={l.website} target="_blank" rel="noreferrer">website</a></span>
+            : <span className="off"><GlobeOff size={14} /> no website</span>}
+          <span><MapPin size={14} /> <a href={l.mapUrl} target="_blank" rel="noreferrer">map</a></span>
         </div>
         <div className="signals">
           {l.needSignals.map((s, i) => (
             <span key={i} className={`sig ${/no |not |down|outdated|insecure/i.test(s) ? "bad" : ""}`}>{s}</span>
           ))}
         </div>
-        <div className="pitch">💡 {l.pitch}</div>
+        <div className="pitch"><Lightbulb size={14} /> <span>{l.pitch}</span></div>
 
         <details className="brk">
-          <summary>Why grade {l.score}? — {l.scoreFactors.length} factor{l.scoreFactors.length === 1 ? "" : "s"}</summary>
+          <summary>
+            <ChevronRight size={13} className="chev" />
+            Why grade {l.score}? — {l.scoreFactors.length} factor{l.scoreFactors.length === 1 ? "" : "s"}
+          </summary>
           <div className="brkbody">
             {l.scoreFactors.length === 0 && (
               <div className="brkrow muted">Nothing scored — solid web presence and no contact channel found.</div>
@@ -344,8 +373,10 @@ function GradeScale({ open, onToggle }: { open: boolean; onToggle: () => void })
   return (
     <div className="card scale">
       <button className="scalehead" onClick={onToggle} aria-expanded={open}>
-        <span>📊 How the grade works — the scale & every factor behind it</span>
-        <span className="caret">{open ? "▲" : "▼"}</span>
+        <span className="sh-title">
+          <Gauge size={16} /> How the grade works — the scale and every factor behind it
+        </span>
+        <ChevronDown size={15} className={`caret ${open ? "up" : ""}`} />
       </button>
 
       {open && (
@@ -355,10 +386,10 @@ function GradeScale({ open, onToggle }: { open: boolean; onToggle: () => void })
             {GRADE_SCALE.map((b) => (
               <div className={`band ${b.tier}`} key={b.tier}>
                 <div className="bandhead">
-                  <b>{b.label}</b><span>{b.min}–{b.max}</span>
+                  <b><Dot /> {b.label}</b><span>{b.min}–{b.max}</span>
                 </div>
                 <p>{b.meaning}</p>
-                <p className="act">→ {b.action}</p>
+                <p className="act"><ArrowRight size={13} /> {b.action}</p>
               </div>
             ))}
           </div>
@@ -369,7 +400,7 @@ function GradeScale({ open, onToggle }: { open: boolean; onToggle: () => void })
             email. The bands are calibrated to that, not to a theoretical 100.
           </p>
 
-          <h4>Need — why they'd buy</h4>
+          <h4>Need — why they&rsquo;d buy</h4>
           <table className="ftable">
             <tbody>
               {need.map((f) => (
@@ -382,8 +413,8 @@ function GradeScale({ open, onToggle }: { open: boolean; onToggle: () => void })
             </tbody>
           </table>
           <p className="note">
-            The first two are mutually exclusive with the rest — if there's no site (or it's down),
-            we can't audit HTTPS, mobile or copyright age, so only that one factor fires.
+            The first two are mutually exclusive with the rest — if there&rsquo;s no site (or it&rsquo;s down),
+            we can&rsquo;t audit HTTPS, mobile or copyright age, so only that one factor fires.
           </p>
 
           <h4>Reach — can you actually close them?</h4>
@@ -406,9 +437,9 @@ function GradeScale({ open, onToggle }: { open: boolean; onToggle: () => void })
           </p>
           <div className="bands">
             {FRESHNESS_SCALE.map((b) => (
-              <div className="band" key={b.level}>
+              <div className={`band fdot ${b.level}`} key={b.level}>
                 <div className="bandhead">
-                  <b>{FRESH_EMOJI[b.level]} {b.label}</b>
+                  <b><Dot /> {b.label}</b>
                   <span>{b.maxDays === Infinity ? "2+ yrs" : b.maxDays < 365 ? `≤ ${b.maxDays}d` : `≤ ${Math.round(b.maxDays / 365)}y`}</span>
                 </div>
                 <p>{b.meaning}</p>
