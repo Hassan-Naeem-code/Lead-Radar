@@ -4,6 +4,7 @@ import { resolveNiche } from "@/lib/niche";
 import { queryOverpass, type OsmElement } from "@/lib/overpass";
 import { auditWebsite } from "@/lib/audit";
 import { scoreLead } from "@/lib/score";
+import { assessFreshness } from "@/lib/freshness";
 import type { Lead, SearchResult } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -52,6 +53,8 @@ function buildLead(el: OsmElement): Lead | null {
     t.shop || t.amenity || t.office || t.craft || t.healthcare || t.tourism || t.leisure || "business";
   const address = [t["addr:housenumber"], t["addr:street"]].filter(Boolean).join(" ");
   const city = t["addr:city"] || "";
+  const lastUpdated = el.timestamp ?? null;
+  const fresh = assessFreshness(lastUpdated);
 
   return {
     id: `${el.type}/${el.id}`,
@@ -71,8 +74,13 @@ function buildLead(el: OsmElement): Lead | null {
     mobileFriendly: null,
     copyrightYear: null,
     outdated: null,
+    lastUpdated,
+    freshness: fresh.level,
+    freshnessAgeDays: fresh.ageDays,
+    freshnessLabel: fresh.ageLabel,
     score: 0,
     tier: "COOL",
+    scoreFactors: [],
     needSignals: [],
     pitch: "",
   };
@@ -142,6 +150,7 @@ export async function POST(req: NextRequest) {
       const s = scoreLead(lead);
       lead.score = s.score;
       lead.tier = s.tier;
+      lead.scoreFactors = s.factors;
       lead.needSignals = s.signals;
       lead.pitch = s.pitch;
     }
@@ -163,6 +172,7 @@ export async function POST(req: NextRequest) {
       count: top.length,
       leads: top,
       notes,
+      scannedAt: new Date().toISOString(),
     };
     return NextResponse.json(result);
   } catch (e) {

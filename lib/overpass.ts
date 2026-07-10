@@ -15,6 +15,8 @@ export type OsmElement = {
   lon?: number;
   center?: { lat: number; lon: number };
   tags?: Record<string, string>;
+  /** ISO time the listing was last edited in OSM — only present with `out meta`. */
+  timestamp?: string;
 };
 
 // Query OpenStreetMap for real businesses matching the given tag filters inside the bbox.
@@ -25,10 +27,12 @@ export async function queryOverpass(
 ): Promise<OsmElement[]> {
   const [south, north, west, east] = area.bbox;
   const bbox = `${south},${west},${north},${east}`;
+  // `meta` (rather than `tags`) also returns each element's last-edit timestamp,
+  // which is what drives the lead freshness signal. It implies tags.
   const body =
     `[out:json][timeout:25];(` +
     filters.map((f) => `nwr[${f}](${bbox});`).join("") +
-    `);out center tags ${Math.min(Math.max(limit * 6, 150), 500)};`;
+    `);out meta center ${Math.min(Math.max(limit * 6, 150), 500)};`;
 
   let lastErr: unknown = null;
   for (const endpoint of ENDPOINTS) {
