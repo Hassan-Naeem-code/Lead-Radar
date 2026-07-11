@@ -59,6 +59,12 @@ export const Phone = (p: IconProps) => (
   </Svg>
 );
 
+export const Check = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M20 6 9 17l-5-5" />
+  </Svg>
+);
+
 export const Mail = (p: IconProps) => (
   <Svg {...p}>
     <rect x="2" y="4" width="20" height="16" rx="2" />

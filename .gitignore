@@ -3,3 +3,11 @@ node_modules
 .vercel
 *.log
 .DS_Store
+
+# local env / secrets — never commit
+.env
+.env.local
+.env*.local
+
+# lockfile: standardized on npm (package-lock.json)
+yarn.lock
