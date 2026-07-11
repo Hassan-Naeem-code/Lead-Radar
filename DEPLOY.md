@@ -63,7 +63,7 @@ They can sign up, define their needs, see a real custom quote, and use the lead 
 
 ### What's still stubbed (coming next)
 - **Payment**: `/checkout` is a placeholder. To take real money we add Stripe (needs a Stripe
-  account + 2 keys) — tell Claude when you're ready.
+  account + 2 keys) — set it up when you're ready.
 - **Verified leads**: the dashboard still runs the free OpenStreetMap search with unverified
   contacts. The email/phone/active-business verification engine is the next major phase.
 
