@@ -6,6 +6,9 @@ import { auditWebsite } from "@/lib/audit";
 import { scoreLead } from "@/lib/score";
 import { assessFreshness } from "@/lib/freshness";
 import type { Lead, SearchResult } from "@/lib/types";
+import { createClient } from "@/lib/supabase/server";
+import { getActiveEntitlement, debitLeads } from "@/lib/gate";
+import { stripeConfigured } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -106,8 +109,35 @@ export async function POST(req: NextRequest) {
     if (!niche || !location) {
       return NextResponse.json({ error: "niche and location are required" }, { status: 400 });
     }
-    const cap = Math.min(Math.max(parseInt(String(limit)) || 40, 1), 80);
+    let cap = Math.min(Math.max(parseInt(String(limit)) || 40, 1), 80);
     const notes: string[] = [];
+
+    // Gate: when payments are configured, require auth + a paid, in-quota order,
+    // and clamp the request to remaining quota. Demo deployments (no Stripe) are open.
+    let entitlementOrderId: string | null = null;
+    if (stripeConfigured()) {
+      const supabase = await createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return NextResponse.json({ error: "Please sign in." }, { status: 401 });
+
+      const entitlement = await getActiveEntitlement(user.id);
+      if (!entitlement) {
+        return NextResponse.json(
+          { error: "No active plan. Get a quote to start.", code: "payment_required" },
+          { status: 402 }
+        );
+      }
+      entitlementOrderId = entitlement.orderId;
+      cap = Math.min(cap, entitlement.remaining);
+      if (cap <= 0) {
+        return NextResponse.json(
+          { error: "Lead quota used up for this period.", code: "quota_exhausted" },
+          { status: 402 }
+        );
+      }
+    }
 
     const area = await geocode(location);
     if (!area) {
@@ -163,6 +193,11 @@ export async function POST(req: NextRequest) {
 
     actionable.sort((a, b) => b.score - a.score);
     const top = actionable.slice(0, cap);
+
+    // Debit delivered leads against the paid order (service-role write).
+    if (entitlementOrderId && top.length > 0) {
+      await debitLeads(entitlementOrderId, top.length);
+    }
 
     const result: SearchResult = {
       niche,

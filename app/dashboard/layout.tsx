@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { getActiveEntitlement } from "@/lib/gate";
+import { stripeConfigured } from "@/lib/stripe";
 import { RadarMark } from "../icons";
 
 // The real gate for the app. Middleware does a coarse auth redirect; this re-checks the
@@ -13,9 +15,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!user) redirect("/login?next=/dashboard");
 
-  // PAYMENT GATE — wired in Phase 4. For now every authenticated user is allowed in.
-  // const entitlement = await getActiveEntitlement(user.id);
-  // if (!entitlement) redirect("/quote");
+  // PAYMENT GATE. When Stripe is configured, require a paid, in-quota order —
+  // otherwise send them to get a quote + pay. When payments aren't configured
+  // yet (demo deployments without keys), the dashboard stays open.
+  if (stripeConfigured()) {
+    const entitlement = await getActiveEntitlement(user.id);
+    if (!entitlement) redirect("/quote");
+  }
 
   return (
     <div>
