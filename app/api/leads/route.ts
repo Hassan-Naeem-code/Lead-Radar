@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { geocode } from "@/lib/geocode";
 import { resolveNiche } from "@/lib/niche";
-import { queryOverpass, type OsmElement } from "@/lib/overpass";
 import { auditWebsite } from "@/lib/audit";
 import { scoreLead } from "@/lib/score";
 import { assessFreshness } from "@/lib/freshness";
@@ -9,78 +8,47 @@ import type { Lead, SearchResult } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveEntitlement, debitLeads } from "@/lib/gate";
 import { stripeConfigured } from "@/lib/stripe";
+import { pickSources, mergeRawLeads, type RawLead } from "@/lib/sources";
+import { verifyPhone } from "@/lib/verify/phone";
+import { verifyEmail } from "@/lib/verify/email";
+import { assessActive } from "@/lib/verify/active";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const CHAINS = [
-  // fast food
-  "mcdonald", "burger king", "wendy", "taco bell", "subway", "chipotle",
-  "starbucks", "dunkin", "panera", "chick-fil-a", "chick fil a", "popeyes",
-  "kfc", "domino", "pizza hut", "little caesar", "jet's pizza", "jets pizza",
-  "wingstop", "a&w", "dairy queen", "dave's hot chicken", "daves hot chicken",
-  "papa john", "papa murphy", "marco's pizza", "hungry howie", "cottage inn",
-  "arby", "sonic drive", "hardee", "carl's jr", "jimmy john", "jersey mike",
-  "five guys", "culver", "white castle", "checkers", "del taco", "del boca",
-  "panda express", "raising cane", "in-n-out", "whataburger", "tim horton",
-  "qdoba", "moe's southwest", "firehouse subs", "buffalo wild wings",
-  "applebee", "olive garden", "chili's", "ihop", "denny", "outback",
-  "red lobster", "red robin", "texas roadhouse", "cracker barrel", "tgi friday",
-  "national coney", "leo's coney", "coney island",
-  // retail / big box
-  "walmart", "target", "costco", "sam's club", "home depot", "lowe", "menards",
-  "best buy", "kroger", "meijer", "aldi", "dollar general", "dollar tree",
-  "family dollar", "7-eleven", "circle k", "speedway", "marathon",
-  // pharmacy / services
-  "cvs", "walgreens", "rite aid", "planet fitness", "anytime fitness",
-  "la fitness", "orangetheory", "great clips", "supercuts", "sport clips",
-  "jiffy lube", "valvoline", "midas", "pep boys", "aamco", "monro",
-  "h&r block", "liberty tax", "state farm", "allstate", "geico", "progressive",
-  "u-haul", "enterprise rent", "hertz", "fedex", "ups store", "ace hardware",
-  // telecom / bank
-  "at&t", "verizon", "t-mobile", "comcast", "xfinity", "chase bank",
-  "bank of america", "wells fargo", "pnc bank", "fifth third", "huntington bank",
-];
-
-function buildLead(el: OsmElement): Lead | null {
-  const t = el.tags || {};
-  const name = t.name || t["brand"] || "";
-  if (!name) return null;
-  if (CHAINS.some((c) => name.toLowerCase().includes(c))) return null;
-
-  const lat = el.lat ?? el.center?.lat ?? 0;
-  const lon = el.lon ?? el.center?.lon ?? 0;
-  const website = t.website || t["contact:website"] || t.url || "";
-  const phone = t.phone || t["contact:phone"] || t["contact:mobile"] || "";
-  const category =
-    t.shop || t.amenity || t.office || t.craft || t.healthcare || t.tourism || t.leisure || "business";
-  const address = [t["addr:housenumber"], t["addr:street"]].filter(Boolean).join(" ");
-  const city = t["addr:city"] || "";
-  const lastUpdated = el.timestamp ?? null;
-  const fresh = assessFreshness(lastUpdated);
-
+// Build a Lead skeleton from a source RawLead — audit + verification fill the rest.
+function rawToLead(r: RawLead): Lead {
+  const fresh = assessFreshness(r.lastUpdated);
   return {
-    id: `${el.type}/${el.id}`,
-    name,
-    category,
-    phone,
-    website,
-    email: t.email || t["contact:email"] || "",
-    address,
-    city,
-    lat,
-    lon,
-    mapUrl: `https://www.openstreetmap.org/${el.type}/${el.id}`,
-    hasWebsite: Boolean(website),
+    id: `${r.source}:${r.sourceId}`,
+    name: r.name,
+    category: r.category,
+    phone: r.phone,
+    website: r.website,
+    email: r.email,
+    address: r.address,
+    city: r.city,
+    lat: r.lat,
+    lon: r.lon,
+    mapUrl: r.mapUrl,
+    hasWebsite: Boolean(r.website),
     siteReachable: null,
     hasSSL: null,
     mobileFriendly: null,
     copyrightYear: null,
     outdated: null,
-    lastUpdated,
+    lastUpdated: r.lastUpdated,
     freshness: fresh.level,
     freshnessAgeDays: fresh.ageDays,
     freshnessLabel: fresh.ageLabel,
+    source: r.source,
+    phoneValid: null,
+    phoneType: null,
+    phoneE164: "",
+    emailStatus: "unknown",
+    businessStatus: r.businessStatus,
+    activeStatus: null,
+    deliverable: false,
     score: 0,
     tier: "COOL",
     scoreFactors: [],
@@ -147,22 +115,19 @@ export async function POST(req: NextRequest) {
     const resolved = resolveNiche(niche);
     if (resolved.generic) notes.push("Unknown niche — matched by business name, coverage may vary.");
 
-    const elements = await queryOverpass(resolved.filters, area, cap);
+    // Discover from every configured source (OSM free by default; Places when keyed),
+    // then merge/dedupe into one raw list.
+    const sources = pickSources();
+    const lists = await Promise.all(
+      sources.map((s) =>
+        s.search({ filters: resolved.filters, nicheLabel: resolved.label, area, limit: cap }).catch(() => [])
+      )
+    );
+    const merged = mergeRawLeads(lists);
+    const leads: Lead[] = merged.map(rawToLead);
 
-    // Dedupe by name+coords, build leads.
-    const seen = new Set<string>();
-    const leads: Lead[] = [];
-    for (const el of elements) {
-      const lead = buildLead(el);
-      if (!lead) continue;
-      const key = lead.name.toLowerCase() + "|" + lead.lat.toFixed(3) + lead.lon.toFixed(3);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      leads.push(lead);
-    }
-
-    // Prioritize auditing: businesses with websites (need the audit) first, then no-site.
-    // Cap audit work so requests finish well within serverless time limits.
+    // Audit websites (SSL/mobile/copyright + scrape a published email). Cap to fit
+    // serverless time limits; sites first since they carry the most signal.
     const withSite = leads.filter((l) => l.hasWebsite).slice(0, 24);
     await mapPool(withSite, 12, async (lead) => {
       const audit = await auditWebsite(lead.website);
@@ -176,6 +141,29 @@ export async function POST(req: NextRequest) {
       }
     });
 
+    // Verify contact channels + active status, then set the "deliverable" gate.
+    await mapPool(leads, 12, async (lead) => {
+      if (lead.phone) {
+        const pv = verifyPhone(lead.phone);
+        lead.phoneValid = pv.valid;
+        lead.phoneType = pv.type;
+        lead.phoneE164 = pv.e164;
+      }
+      if (lead.email) {
+        lead.emailStatus = (await verifyEmail(lead.email)).status;
+      }
+      lead.activeStatus = assessActive({
+        businessStatus: lead.businessStatus,
+        hasWebsite: lead.hasWebsite,
+        siteReachable: lead.siteReachable,
+        freshness: lead.freshness,
+      });
+      // Genuine + reachable: a verified phone OR a plausible email, and not closed.
+      const reachable =
+        lead.phoneValid === true || lead.emailStatus === "deliverable" || lead.emailStatus === "risky";
+      lead.deliverable = reachable && lead.activeStatus !== "likely_closed";
+    });
+
     for (const lead of leads) {
       const s = scoreLead(lead);
       lead.score = s.score;
@@ -186,13 +174,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Only keep ACTIONABLE leads — you must be able to reach them at all.
-    // A business with no phone, no website, and no email is not a workable lead.
     const actionable = leads.filter((l) => l.phone || l.website || l.email);
     const dropped = leads.length - actionable.length;
     if (dropped > 0) notes.push(`${dropped} unreachable listings (no phone/site/email) were filtered out.`);
 
-    actionable.sort((a, b) => b.score - a.score);
+    // Sort deliverable (genuine) leads first, then by score.
+    actionable.sort((a, b) => Number(b.deliverable) - Number(a.deliverable) || b.score - a.score);
     const top = actionable.slice(0, cap);
+
+    const genuine = top.filter((l) => l.deliverable).length;
+    notes.push(`${genuine} of ${top.length} leads passed verification (deliverable contact, active business).`);
 
     // Debit delivered leads against the paid order (service-role write).
     if (entitlementOrderId && top.length > 0) {
@@ -203,7 +194,7 @@ export async function POST(req: NextRequest) {
       niche,
       location,
       resolvedArea: area.displayName,
-      matchedTags: [resolved.label],
+      matchedTags: [resolved.label, ...sources.map((s) => s.name)],
       count: top.length,
       leads: top,
       notes,

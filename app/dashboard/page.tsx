@@ -12,7 +12,7 @@ import {
 import {
   RadarMark, Phone, Mail, Globe, GlobeOff, MapPin, Lightbulb, Download, Info,
   AlertTriangle, Clock, Flame, Gauge, Building, Search, ChevronDown,
-  ChevronRight, ArrowRight, RotateCcw, Dot,
+  ChevronRight, ArrowRight, RotateCcw, Dot, Check,
 } from "../icons";
 
 const EXAMPLES = [
@@ -39,6 +39,7 @@ export default function Home() {
   const [tiers, setTiers] = useState<Set<string>>(new Set(ALL_TIERS));
   const [freshLevels, setFreshLevels] = useState<Set<string>>(new Set(ALL_FRESHNESS));
   const [reqFactors, setReqFactors] = useState<Set<string>>(new Set());
+  const [genuineOnly, setGenuineOnly] = useState(false);
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<SortKey>("score");
 
@@ -54,6 +55,7 @@ export default function Home() {
     setTiers(new Set(ALL_TIERS));
     setFreshLevels(new Set(ALL_FRESHNESS));
     setReqFactors(new Set());
+    setGenuineOnly(false);
     setQ("");
     setSort("score");
   }
@@ -86,6 +88,7 @@ export default function Home() {
     const needle = q.trim().toLowerCase();
     const out = result.leads.filter((l) => {
       if (l.score < minScore) return false;
+      if (genuineOnly && !l.deliverable) return false;
       if (!tiers.has(l.tier)) return false;
       if (!freshLevels.has(l.freshness)) return false;
       for (const key of reqFactors) {
@@ -104,16 +107,19 @@ export default function Home() {
       return b.score - a.score;
     });
     return out;
-  }, [result, minScore, tiers, freshLevels, reqFactors, q, sort]);
+  }, [result, minScore, tiers, freshLevels, reqFactors, genuineOnly, q, sort]);
 
   function exportCsv() {
     if (!result) return;
     const cols = [
-      "name", "category", "tier", "score", "phone", "email", "website",
+      "name", "category", "tier", "score", "deliverable", "phoneVerified",
+      "emailStatus", "activeStatus", "phone", "email", "website",
       "address", "city", "needSignals", "scoreBreakdown", "freshness",
       "listingUpdated", "pitch", "mapUrl",
     ];
     const val = (l: Lead, c: string) => {
+      if (c === "deliverable") return l.deliverable ? "yes" : "no";
+      if (c === "phoneVerified") return l.phoneValid ? "yes" : "no";
       if (c === "needSignals") return l.needSignals.join("; ");
       if (c === "scoreBreakdown") return l.scoreFactors.map((f) => `${f.label} +${f.points}`).join("; ");
       if (c === "freshness") return `${l.freshness} (${l.freshnessLabel})`;
@@ -134,8 +140,10 @@ export default function Home() {
   const hot = visible.filter((l) => l.tier === "HOT").length;
   const warm = visible.filter((l) => l.tier === "WARM").length;
   const freshCount = visible.filter((l) => l.freshness === "FRESH" || l.freshness === "RECENT").length;
+  const genuineCount = visible.filter((l) => l.deliverable).length;
   const filtersOn =
-    minScore > 0 || tiers.size < 3 || freshLevels.size < ALL_FRESHNESS.length || reqFactors.size > 0 || q.trim() !== "";
+    minScore > 0 || tiers.size < 3 || freshLevels.size < ALL_FRESHNESS.length ||
+    reqFactors.size > 0 || genuineOnly || q.trim() !== "";
 
   const scanAge = result ? relativeAge(ageInDays(result.scannedAt)) : "";
 
@@ -201,6 +209,10 @@ export default function Home() {
               <span><Clock size={12} className="i-cool" /> fresh listings</span>
             </div>
             <div className="stat">
+              <b style={{ color: "var(--cool)" }}>{genuineCount}</b>
+              <span><Check size={12} className="i-cool" /> genuine (verified)</span>
+            </div>
+            <div className="stat">
               <b style={{ fontSize: 14, fontWeight: 600 }}>{result.matchedTags.join(", ")}</b>
               <span>matched category</span>
             </div>
@@ -240,6 +252,16 @@ export default function Home() {
             </div>
 
             <div className="frow">
+              <div className="fgroup">
+                <label>Quality</label>
+                <div className="chips tight">
+                  <span className={`chip toggle ${genuineOnly ? "on" : ""}`}
+                    onClick={() => setGenuineOnly((v) => !v)}
+                    title="Only verified, reachable leads at an active business">
+                    <Check size={12} /> Genuine only
+                  </span>
+                </div>
+              </div>
               <div className="fgroup">
                 <label>Tier</label>
                 <div className="chips tight">
@@ -326,6 +348,15 @@ function LeadCard({ lead: l }: { lead: Lead }) {
             ? <span><Globe size={14} /> <a href={l.website} target="_blank" rel="noreferrer">website</a></span>
             : <span className="off"><GlobeOff size={14} /> no website</span>}
           <span><MapPin size={14} /> <a href={l.mapUrl} target="_blank" rel="noreferrer">map</a></span>
+        </div>
+        <div className="verify">
+          {l.deliverable && <span className="vbadge good"><Check size={11} /> Genuine</span>}
+          {l.phoneValid && <span className="vbadge"><Phone size={11} /> phone verified</span>}
+          {l.emailStatus === "deliverable" && <span className="vbadge"><Mail size={11} /> email verified</span>}
+          {l.emailStatus === "risky" && <span className="vbadge"><Mail size={11} /> email likely</span>}
+          {l.emailStatus === "undeliverable" && <span className="vbadge bad"><Mail size={11} /> email unreachable</span>}
+          {l.activeStatus === "active" && <span className="vbadge"><Building size={11} /> active</span>}
+          {l.activeStatus === "likely_closed" && <span className="vbadge bad">may be closed</span>}
         </div>
         <div className="signals">
           {l.needSignals.map((s, i) => (

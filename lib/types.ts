@@ -32,6 +32,16 @@ export type Lead = {
   freshness: FreshnessLevel;
   freshnessAgeDays: number | null;
   freshnessLabel: string;
+  // --- verification (Phase 5: "genuine leads") ---
+  source: string; // "osm" | "google_places"
+  phoneValid: boolean | null;
+  phoneType: string | null;
+  phoneE164: string;
+  emailStatus: "deliverable" | "risky" | "undeliverable" | "unknown";
+  businessStatus: "operational" | "closed_temporarily" | "closed_permanently" | null;
+  activeStatus: "active" | "uncertain" | "likely_closed" | null;
+  /** The single delivery gate: a genuine, sellable lead we can actually reach. */
+  deliverable: boolean;
   // scoring
   score: number;
   tier: "HOT" | "WARM" | "COOL";
