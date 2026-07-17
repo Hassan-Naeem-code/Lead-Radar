@@ -6,7 +6,7 @@
   --text: #e7ecf5;
   --muted: #8a97b1;
   --accent: #4f8cff;
-  --accent2: #7c5cff;
+  --accent2: #23b673;
   --hot: #ff5470;
   --warm: #ffb23e;
   --cool: #46c1a0;
@@ -305,7 +305,7 @@ button.ghost, button.go { display: inline-flex; align-items: center; justify-con
   padding: 6px 14px; font-size: 12.5px; margin-bottom: 26px;
 }
 .lp-hero h1 { font-size: 60px; line-height: 1.04; letter-spacing: -0.03em; margin-bottom: 22px; }
-.grad { background: linear-gradient(120deg, var(--accent), var(--accent2) 60%, var(--hot)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.grad { background: linear-gradient(120deg, var(--accent), #22c1d6 45%, var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .lp-sub { max-width: 620px; margin: 0 auto 32px; color: var(--muted); font-size: 17px; line-height: 1.6; }
 .lp-herobtns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 .lp-ghost {
