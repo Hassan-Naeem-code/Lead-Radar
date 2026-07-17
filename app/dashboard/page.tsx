@@ -10,7 +10,7 @@ import {
   type FreshnessLevel,
 } from "@/lib/freshness";
 import {
-  RadarMark, Phone, Mail, Globe, GlobeOff, MapPin, Lightbulb, Download, Info,
+  FreshLeadsMark, Phone, Mail, Globe, GlobeOff, MapPin, Lightbulb, Download, Info,
   AlertTriangle, Clock, Flame, Gauge, Building, Search, ChevronDown,
   ChevronRight, ArrowRight, RotateCcw, Dot, Check,
 } from "../icons";
@@ -150,8 +150,8 @@ export default function Home() {
   return (
     <div className="wrap">
       <div className="brand">
-        <div className="logo"><RadarMark size={22} /></div>
-        <h1>LeadRadar</h1>
+        <div className="logo"><FreshLeadsMark size={22} /></div>
+        <h1>Fresh Leads</h1>
       </div>
       <p className="tag">Type any niche and location to surface real, qualified leads that need your work.</p>
 

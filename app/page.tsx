@@ -1,11 +1,11 @@
 import Link from "next/link";
 import {
-  RadarMark, Mail, Phone, Building, Clock, Search, ArrowRight,
+  FreshLeadsMark, Mail, Phone, Building, Clock, Search, ArrowRight,
   Flame, Gauge, MapPin,
 } from "./icons";
 
 export const metadata = {
-  title: "LeadRadar — Verified local business leads, on demand",
+  title: "Fresh Leads — Verified local business leads, on demand",
   description:
     "Tell us your ideal customer. We surface real local businesses, verify every email and phone, confirm they're open, and deliver only leads worth paying for.",
 };
@@ -16,8 +16,8 @@ export default function Landing() {
       {/* Nav */}
       <nav className="lp-nav">
         <div className="lp-brand">
-          <span className="logo"><RadarMark size={20} /></span>
-          <b>LeadRadar</b>
+          <span className="logo"><FreshLeadsMark size={20} /></span>
+          <b>Fresh Leads</b>
         </div>
         <div className="lp-navlinks">
           <a href="#how">How it works</a>
@@ -36,7 +36,7 @@ export default function Landing() {
           <span className="grad">actually convert.</span>
         </h1>
         <p className="lp-sub">
-          Tell us the business you want to reach. LeadRadar finds real local companies,
+          Tell us the business you want to reach. Fresh Leads finds real local companies,
           verifies every email and phone, confirms they&rsquo;re still open, and hands you
           only the leads worth paying for — so you never waste a pitch on a dead address.
         </p>
@@ -127,8 +127,8 @@ export default function Landing() {
 
       <footer className="lp-footer">
         <div className="lp-brand">
-          <span className="logo sm"><RadarMark size={15} /></span>
-          <b>LeadRadar</b>
+          <span className="logo sm"><FreshLeadsMark size={15} /></span>
+          <b>Fresh Leads</b>
         </div>
         <span>Verified local business leads, on demand.</span>
       </footer>

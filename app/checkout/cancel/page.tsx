@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { RadarMark } from "../../icons";
+import { FreshLeadsMark } from "../../icons";
 
 export default function CheckoutCancel() {
   return (
     <div className="wrap">
       <div className="brand">
-        <div className="logo"><RadarMark size={22} /></div>
+        <div className="logo"><FreshLeadsMark size={22} /></div>
         <h1>Checkout canceled</h1>
       </div>
       <div className="card" style={{ maxWidth: 520 }}>

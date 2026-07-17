@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { RadarMark, Check, ArrowRight } from "../../icons";
+import { FreshLeadsMark, Check, ArrowRight } from "../../icons";
 
 // Confirmation only. Access is granted by the Stripe webhook, not this page.
 export default function CheckoutSuccess() {
   return (
     <div className="wrap">
       <div className="brand">
-        <div className="logo"><RadarMark size={22} /></div>
+        <div className="logo"><FreshLeadsMark size={22} /></div>
         <h1>You&rsquo;re in</h1>
       </div>
       <div className="card" style={{ maxWidth: 520 }}>

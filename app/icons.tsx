@@ -31,24 +31,46 @@ function Svg({
   );
 }
 
-/** Brand mark: concentric radar rings with a sweep line and a contact blip. */
-export function RadarMark({ size = 22 }: IconProps) {
+/** Brand mark: a horseshoe magnet (blue) drawing an upward growth arrow (green)
+ *  — "attract fresh leads + growth". Full-colour, standalone (no tile). Gradient
+ *  ids are fixed and identical across instances, so duplicate-id references all
+ *  resolve to the same gradient and render correctly. */
+export function FreshLeadsMark({ size = 22 }: IconProps) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="12" r="9.25" />
-      <circle cx="12" cy="12" r="4.75" opacity="0.55" />
-      <path d="M12 12 18.5 5.5" />
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
-      <circle cx="17.6" cy="16.4" r="1.6" fill="currentColor" stroke="none" opacity="0.9" />
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="fl-blue" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" stopColor="#0e6fc4" />
+          <stop offset="1" stopColor="#25c2d3" />
+        </linearGradient>
+        <linearGradient id="fl-green" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" stopColor="#38a349" />
+          <stop offset="1" stopColor="#8fe563" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M12 13 v11 a10 10 0 0 0 20 0 v-11"
+        fill="none"
+        stroke="url(#fl-blue)"
+        strokeWidth={7}
+        strokeLinecap="round"
+      />
+      <path
+        d="M16 26 L23 19 L27 23 L35 13"
+        fill="none"
+        stroke="url(#fl-green)"
+        strokeWidth={5.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M28.5 13 L35.5 13 L35.5 20"
+        fill="none"
+        stroke="url(#fl-green)"
+        strokeWidth={5.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

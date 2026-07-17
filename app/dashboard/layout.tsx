@@ -3,7 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveEntitlement } from "@/lib/gate";
 import { stripeConfigured } from "@/lib/stripe";
-import { RadarMark } from "../icons";
+import { FreshLeadsMark } from "../icons";
 
 // The real gate for the app. Middleware does a coarse auth redirect; this re-checks the
 // user server-side and (from Phase 4) will also require a paid, in-quota order.
@@ -28,9 +28,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <header className="topbar">
         <Link href="/dashboard" className="topbrand">
           <span className="logo sm">
-            <RadarMark size={16} />
+            <FreshLeadsMark size={16} />
           </span>
-          LeadRadar
+          Fresh Leads
         </Link>
         <div className="topright">
           <span className="topuser">{user.email}</span>

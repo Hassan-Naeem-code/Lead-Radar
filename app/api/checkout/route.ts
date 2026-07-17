@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
         price_data: {
           currency: quote.currency,
           unit_amount: quote.amount_cents,
-          product_data: { name: `LeadRadar — ${quote.monthly_lead_volume} verified leads` },
+          product_data: { name: `Fresh Leads — ${quote.monthly_lead_volume} verified leads` },
           ...(isSub ? { recurring: { interval: "month" as const } } : {}),
         },
       },

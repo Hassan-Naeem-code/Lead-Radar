@@ -3,7 +3,7 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { RadarMark } from "../../icons";
+import { FreshLeadsMark } from "../../icons";
 
 function LoginForm() {
   const router = useRouter();
@@ -35,9 +35,9 @@ function LoginForm() {
       <div className="card authcard">
         <div className="brand">
           <div className="logo">
-            <RadarMark size={22} />
+            <FreshLeadsMark size={22} />
           </div>
-          <h1>LeadRadar</h1>
+          <h1>Fresh Leads</h1>
         </div>
         <h2>Welcome back</h2>
         <p className="sub">Sign in to run verified lead searches.</p>

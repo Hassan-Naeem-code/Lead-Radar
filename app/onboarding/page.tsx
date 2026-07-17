@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { RadarMark, ArrowRight, AlertTriangle } from "../icons";
+import { FreshLeadsMark, ArrowRight, AlertTriangle } from "../icons";
 
 const RADII = [
   { km: 15, label: "Local (15 km)" },
@@ -60,7 +60,7 @@ export default function Onboarding() {
   return (
     <div className="wrap onboard">
       <div className="brand">
-        <div className="logo"><RadarMark size={22} /></div>
+        <div className="logo"><FreshLeadsMark size={22} /></div>
         <h1>Define your ideal lead</h1>
       </div>
       <p className="tag">Tell us who you want to reach. We&rsquo;ll price a plan around exactly that.</p>

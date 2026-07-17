@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { RadarMark } from "../../icons";
+import { FreshLeadsMark } from "../../icons";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -48,9 +48,9 @@ export default function SignupPage() {
       <div className="card authcard">
         <div className="brand">
           <div className="logo">
-            <RadarMark size={22} />
+            <FreshLeadsMark size={22} />
           </div>
-          <h1>LeadRadar</h1>
+          <h1>Fresh Leads</h1>
         </div>
         <h2>Create your account</h2>
         <p className="sub">Define your ideal lead. We deliver verified ones.</p>

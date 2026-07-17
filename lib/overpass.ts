@@ -43,7 +43,7 @@ export async function queryOverpass(
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
             Accept: "application/json",
-            "User-Agent": "LeadRadar/1.0 (lead-generation tool)",
+            "User-Agent": "FreshLeads/1.0 (lead-generation tool)",
           },
           body: "data=" + encodeURIComponent(body),
         });

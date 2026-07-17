@@ -1,4 +1,4 @@
-# Deploying LeadRadar live (for your partner to see)
+# Deploying Fresh Leads live (for your partner to see)
 
 Follow top to bottom. ~15 minutes. Everything here is on free tiers.
 

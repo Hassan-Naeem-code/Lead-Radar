@@ -1,4 +1,4 @@
--- LeadRadar — full database schema (run once in the Supabase SQL editor).
+-- Fresh Leads — full database schema (run once in the Supabase SQL editor).
 -- Safe to re-run: guarded with "if not exists" / "drop ... if exists" where practical.
 --
 -- Security model: RLS is ON for every table. Users can read/write their OWN rows for

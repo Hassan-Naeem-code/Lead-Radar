@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { RadarMark } from "../icons";
+import { FreshLeadsMark } from "../icons";
 
 const money = (cents: number) => `$${(cents / 100).toLocaleString("en-US")}`;
 
@@ -25,7 +25,7 @@ export default async function CheckoutPage({
   return (
     <div className="wrap">
       <div className="brand">
-        <div className="logo"><RadarMark size={22} /></div>
+        <div className="logo"><FreshLeadsMark size={22} /></div>
         <h1>Checkout</h1>
       </div>
       {quote ? (

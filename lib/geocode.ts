@@ -1,4 +1,4 @@
-const UA = "LeadRadar/1.0 (lead-generation tool)";
+const UA = "FreshLeads/1.0 (lead-generation tool)";
 
 export type GeoArea = {
   displayName: string;
