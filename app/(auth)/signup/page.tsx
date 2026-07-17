@@ -12,35 +12,31 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [done, setDone] = useState<null | "confirm" | "session">(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const supabase = createClient();
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-        emailRedirectTo:
-          typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined,
-      },
-    });
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-      return;
-    }
-    // If email confirmation is OFF, a session is returned immediately -> go onboard.
-    if (data.session) {
-      setDone("session");
+    try {
+      // Instant signup: server creates a pre-confirmed user, then we sign in.
+      const res = await fetch("/api/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, fullName }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not create your account");
+
+      const supabase = createClient();
+      const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInErr) throw new Error(signInErr.message);
+
       router.push("/onboarding");
       router.refresh();
-      return;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+      setLoading(false);
     }
-    setDone("confirm");
   }
 
   return (
@@ -55,52 +51,46 @@ export default function SignupPage() {
         <h2>Create your account</h2>
         <p className="sub">Define your ideal lead. We deliver verified ones.</p>
 
-        {done === "confirm" ? (
-          <div className="authmsg ok">
-            Check your inbox to confirm <b>{email}</b>, then sign in.
+        <form className="authform" onSubmit={onSubmit}>
+          <div>
+            <label htmlFor="name">Full name</label>
+            <input
+              id="name"
+              type="text"
+              autoComplete="name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+            />
           </div>
-        ) : (
-          <form className="authform" onSubmit={onSubmit}>
-            <div>
-              <label htmlFor="name">Full name</label>
-              <input
-                id="name"
-                type="text"
-                autoComplete="name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="password">Password</label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            {error && <div className="authmsg err">{error}</div>}
-            <button className="go" type="submit" disabled={loading}>
-              {loading ? "Creating account…" : "Create account"}
-            </button>
-          </form>
-        )}
+          <div>
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="new-password"
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          {error && <div className="authmsg err">{error}</div>}
+          <button className="go" type="submit" disabled={loading}>
+            {loading ? "Creating account…" : "Create account"}
+          </button>
+        </form>
 
         <p className="authalt">
           Already have an account? <Link href="/login">Sign in</Link>
