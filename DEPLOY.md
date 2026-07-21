@@ -55,6 +55,36 @@ Follow top to bottom. ~15 minutes. Everything here is on free tiers.
 2. In Supabase → **Authentication → URL Configuration** → set **Site URL** to that URL and
    add it under **Redirect URLs** too → **Save**.
 
+## Step 7 — Enable the admin panel (`/admin`)
+
+The admin panel lets you manage every user's plan/access and change the site's
+branding (colors, logo, name). Admin sign-in is its **own separate login** (not a
+normal user account, and there's no admin signup). Setup:
+
+1. **Add the database tables + logo storage.** In Supabase → **SQL Editor → New query**,
+   run **both** of these (paste all, Run):
+   - `supabase/002_admin_branding.sql` — the `site_settings` table + public `branding`
+     storage bucket. (Confirm the bucket shows under **Storage**, marked *public*.)
+   - `supabase/003_admin_accounts.sql` — the single admin credential table.
+2. **Set the fixed admin login.** Add these env vars (Vercel → Settings → Environment
+   Variables, or `.env.local` locally):
+   ```
+   ADMIN_EMAIL    = you@fresh-leads.io
+   ADMIN_PASSWORD = <a strong first password>
+   ```
+   Redeploy after adding them. These are only the **starting** credentials — on first
+   login they're saved to the database, and you change the password from inside the panel.
+   There is no way to create a second admin from the app.
+
+Now go to **`/admin/login`**, sign in with those credentials, and you land in **`/admin`**:
+- **Users & plans** — every account with its access. Edit lead quota, status, and expiry, or
+  **Grant access** to someone who never paid. Changes go live on their next request. (This
+  controls access in your database only — it does **not** cancel/refund real Stripe billing.)
+- **Branding** — change the color theme, upload a logo, and set the brand name/tagline, then
+  **Publish** to push it live across the whole site.
+- **Account** — change your admin password. It replaces the initial `ADMIN_PASSWORD` and
+  persists in the database, so the env value is only ever used for that first sign-in.
+
 ---
 
 ## Done — send the Vercel link to your partner

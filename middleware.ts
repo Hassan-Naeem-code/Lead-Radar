@@ -1,8 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { ADMIN_COOKIE } from "@/lib/admin/constants";
 
 // Routes that require a logged-in user. Payment gating is enforced deeper
 // (dashboard/layout.tsx + /api/leads) — middleware only does the coarse auth redirect.
+// NOTE: /admin is NOT here — it uses a separate admin session (see below), not user auth.
 const PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/quote", "/checkout"];
 
 export async function middleware(request: NextRequest) {
@@ -45,6 +47,21 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // Admin pages use their own session cookie (separate from user auth). Missing
+  // cookie -> send to the admin login. The signature is fully verified server-side
+  // in app/admin/* and /api/admin/* — this is just the coarse edge guard. The login
+  // page itself must stay reachable.
+  if (
+    pathname.startsWith("/admin") &&
+    pathname !== "/admin/login" &&
+    !request.cookies.get(ADMIN_COOKIE)
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin/login";
+    url.search = "";
     return NextResponse.redirect(url);
   }
 

@@ -1,23 +1,30 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import {
-  FreshLeadsMark, Mail, Phone, Building, Clock, Search, ArrowRight,
+  Mail, Phone, Building, Clock, Search, ArrowRight,
   Flame, Gauge, MapPin,
 } from "./icons";
+import { getSiteSettings } from "@/lib/site-settings.server";
+import { BrandMark, BrandName } from "./brand";
 
-export const metadata = {
-  title: "Fresh Leads — Verified local business leads, on demand",
-  description:
-    "Tell us your ideal customer. We surface real local businesses, verify every email and phone, confirm they're open, and deliver only leads worth paying for.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSiteSettings();
+  return {
+    title: `${s.brand_name} — Verified local business leads, on demand`,
+    description:
+      "Tell us your ideal customer. We surface real local businesses, verify every email and phone, confirm they're open, and deliver only leads worth paying for.",
+  };
+}
 
-export default function Landing() {
+export default async function Landing() {
+  const settings = await getSiteSettings();
   return (
     <div className="lp">
       {/* Nav */}
       <nav className="lp-nav">
         <div className="lp-brand">
-          <span className="logo"><FreshLeadsMark size={20} /></span>
-          <b>Fresh Leads</b>
+          <span className="logo"><BrandMark settings={settings} size={20} /></span>
+          <b><BrandName settings={settings} /></b>
         </div>
         <div className="lp-navlinks">
           <a href="#how">How it works</a>
@@ -36,7 +43,7 @@ export default function Landing() {
           <span className="grad">actually convert.</span>
         </h1>
         <p className="lp-sub">
-          Tell us the business you want to reach. Fresh Leads finds real local companies,
+          Tell us the business you want to reach. {settings.brand_name} finds real local companies,
           verifies every email and phone, confirms they&rsquo;re still open, and hands you
           only the leads worth paying for — so you never waste a pitch on a dead address.
         </p>
@@ -127,10 +134,10 @@ export default function Landing() {
 
       <footer className="lp-footer">
         <div className="lp-brand">
-          <span className="logo sm"><FreshLeadsMark size={15} /></span>
-          <b>Fresh Leads</b>
+          <span className="logo sm"><BrandMark settings={settings} size={15} /></span>
+          <b><BrandName settings={settings} /></b>
         </div>
-        <span>Verified local business leads, on demand.</span>
+        <span>{settings.tagline}</span>
       </footer>
     </div>
   );

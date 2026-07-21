@@ -3,7 +3,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveEntitlement } from "@/lib/gate";
 import { stripeConfigured } from "@/lib/stripe";
-import { FreshLeadsMark } from "../icons";
+import { getSiteSettings } from "@/lib/site-settings.server";
+import { BrandMark, BrandName } from "../brand";
 
 // The real gate for the app. Middleware does a coarse auth redirect; this re-checks the
 // user server-side and (from Phase 4) will also require a paid, in-quota order.
@@ -23,14 +24,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
     if (!entitlement) redirect("/quote");
   }
 
+  const settings = await getSiteSettings();
+
   return (
     <div>
       <header className="topbar">
         <Link href="/dashboard" className="topbrand">
           <span className="logo sm">
-            <FreshLeadsMark size={16} />
+            <BrandMark settings={settings} size={16} />
           </span>
-          Fresh Leads
+          <BrandName settings={settings} />
         </Link>
         <div className="topright">
           <span className="topuser">{user.email}</span>
