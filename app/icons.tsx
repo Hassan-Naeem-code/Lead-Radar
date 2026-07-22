@@ -37,37 +37,22 @@ function Svg({
  *  resolve to the same gradient and render correctly. */
 export function FreshLeadsMark({ size = 22 }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
       <defs>
-        <linearGradient id="fl-blue" x1="0" y1="1" x2="1" y2="0">
-          <stop offset="0" stopColor="#0e6fc4" />
-          <stop offset="1" stopColor="#25c2d3" />
-        </linearGradient>
-        <linearGradient id="fl-green" x1="0" y1="1" x2="1" y2="0">
-          <stop offset="0" stopColor="#38a349" />
-          <stop offset="1" stopColor="#8fe563" />
+        <linearGradient id="fl-o" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#ff8a5c" />
+          <stop offset="1" stopColor="#e2431a" />
         </linearGradient>
       </defs>
+      {/* concentric "radar" rings — locating verified leads */}
+      <circle cx="16" cy="16" r="14" stroke="url(#fl-o)" strokeWidth="2" opacity="0.2" />
+      <circle cx="16" cy="16" r="9.5" stroke="url(#fl-o)" strokeWidth="2" opacity="0.45" />
+      {/* solid centre with a verification check */}
+      <circle cx="16" cy="16" r="7" fill="url(#fl-o)" />
       <path
-        d="M12 13 v11 a10 10 0 0 0 20 0 v-11"
-        fill="none"
-        stroke="url(#fl-blue)"
-        strokeWidth={7}
-        strokeLinecap="round"
-      />
-      <path
-        d="M16 26 L23 19 L27 23 L35 13"
-        fill="none"
-        stroke="url(#fl-green)"
-        strokeWidth={5.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M28.5 13 L35.5 13 L35.5 20"
-        fill="none"
-        stroke="url(#fl-green)"
-        strokeWidth={5.5}
+        d="M12.9 16.2 l2.1 2.1 4.1 -4.5"
+        stroke="#fff"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
